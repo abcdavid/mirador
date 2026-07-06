@@ -452,7 +452,7 @@ export default {
     // filteredMotivations: if empty, all annotation motivations will be shown.
     // Otherwise, only annotations with motivations listed in the array will be shown.
     filteredMotivations: [],
-    enableAnnotationCopy: true,
+    enableAnnotationCopy: false,
     annotationCopyConfirmDuration: 2000,
   },
   createGenerateClassNameOptions: {

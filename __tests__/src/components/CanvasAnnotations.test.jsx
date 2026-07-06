@@ -1,8 +1,10 @@
-import { render, screen } from '@tests/utils/test-utils';
+import { render, screen, act, fireEvent } from '@tests/utils/test-utils';
 import userEvent from '@testing-library/user-event';
 
 import { CanvasAnnotations } from '../../../src/components/CanvasAnnotations';
 import { ScrollTo } from '../../../src/components/ScrollTo';
+
+vi.mock('copy-to-clipboard', () => ({ default: vi.fn() }));
 
 /** Utility function to wrap CanvasAnnotations */
 function createWrapper(props) {
@@ -180,6 +182,71 @@ describe('CanvasAnnotations', () => {
 
       await user.hover(screen.getByRole('menu'));
       expect(hoverAnnotation).toHaveBeenCalledWith('abc', []);
+    });
+  });
+  describe('annotation copy button', () => {
+    const annotations = [
+      {
+        content: 'First Annotation',
+        id: 'abc123',
+        tags: [],
+        targetId: 'example.com/iiif/12345',
+      },
+    ];
+
+    it('does not render the copy button when enableAnnotationCopy is not set', () => {
+      createWrapper({ annotations, selectedAnnotationId: 'abc123' });
+
+      expect(screen.queryByRole('button', { name: /copy annotation text/i })).not.toBeInTheDocument();
+    });
+
+    it('does not render the copy button when annotation is not selected', () => {
+      createWrapper({ annotations, enableAnnotationCopy: true });
+
+      expect(screen.queryByRole('button', { name: /copy annotation text/i })).not.toBeInTheDocument();
+    });
+
+    it('renders the copy button when enabled and annotation is selected', () => {
+      createWrapper({ annotations, enableAnnotationCopy: true, selectedAnnotationId: 'abc123' });
+
+      expect(screen.getByRole('button', { name: /copy annotation text/i })).toBeInTheDocument();
+    });
+
+    it('does not trigger deselectAnnotation when the copy button is clicked', async () => {
+      const deselectAnnotation = vi.fn();
+      const user = userEvent.setup();
+
+      createWrapper({
+        annotations,
+        deselectAnnotation,
+        enableAnnotationCopy: true,
+        selectedAnnotationId: 'abc123',
+      });
+
+      await user.click(screen.getByRole('button', { name: /copy annotation text/i }));
+
+      expect(deselectAnnotation).not.toHaveBeenCalled();
+    });
+
+    it('shows a tick icon after clicking the copy button and reverts after the confirm duration', () => {
+      vi.useFakeTimers();
+
+      createWrapper({
+        annotations,
+        enableAnnotationCopy: true,
+        annotationCopyConfirmDuration: 2000,
+        selectedAnnotationId: 'abc123',
+      });
+
+      fireEvent.click(screen.getByRole('button', { name: /copy annotation text/i }));
+
+      expect(screen.getByRole('button', { name: /annotation text copied/i })).toBeInTheDocument();
+
+      act(() => vi.advanceTimersByTime(2000));
+
+      expect(screen.getByRole('button', { name: /copy annotation text/i })).toBeInTheDocument();
+
+      vi.useRealTimers();
     });
   });
 });
