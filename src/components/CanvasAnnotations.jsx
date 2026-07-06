@@ -6,6 +6,7 @@ import MenuList from '@mui/material/MenuList';
 import MenuItem from '@mui/material/MenuItem';
 import ListItemText from '@mui/material/ListItemText';
 import Typography from '@mui/material/Typography';
+import { styled } from '@mui/material/styles';
 import { useTranslation } from 'react-i18next';
 import SanitizedHtml from '../containers/SanitizedHtml';
 import { ScrollTo } from './ScrollTo';
@@ -13,6 +14,23 @@ import { MiradorMenuButton } from './MiradorMenuButton';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import CheckIcon from '@mui/icons-material/Check';
 import copy from 'copy-to-clipboard';
+
+const AnnotationCopyButton = styled(MiradorMenuButton, {
+  name: 'AnnotationCopyButton',
+  slot: 'root',
+})({
+  float: 'right',
+  padding: '0',
+  marginLeft: '0',
+  marginBottom: '0',
+});
+
+const AnnotationBody = styled(Box, {
+  name: 'AnnotationBody',
+  slot: 'root',
+})({
+  display: 'block',
+});
 
 /**
  * CanvasAnnotations ~
@@ -102,16 +120,15 @@ export function CanvasAnnotations({
               onMouseEnter={() => handleAnnotationHover(annotation)}
               onMouseLeave={handleAnnotationBlur}
             >
-              <Box sx={{ display: 'block' }}>
+              <AnnotationBody>
                 {enableAnnotationCopy && selectedAnnotationId === annotation.id && (
-                  <MiradorMenuButton
+                  <AnnotationCopyButton
                     aria-label={copiedAnnotationId === annotation.id ? t('copiedAnnotationText') : t('copyAnnotationText')}
-                    sx={{ float: 'right', padding: '0', marginLeft: '0', marginBottom: '0' }}
                     size="small"
                     onClick={handleCopyClick(annotation)}
                   >
                     {copiedAnnotationId === annotation.id ? <CheckIcon fontSize="small" /> : <ContentCopyIcon fontSize="small" />}
-                  </MiradorMenuButton>
+                  </AnnotationCopyButton>
                 )}
                 <ListItemText
                   primaryTypographyProps={{ variant: 'body2' }}
@@ -120,7 +137,7 @@ export function CanvasAnnotations({
                     <Chip component="span" size="small" variant="outlined" label={tag} id={tag} key={tag.toString()} />
                   ))}
                 />
-              </Box>
+              </AnnotationBody>
             </MenuItem>
           </ScrollTo>
         ))}
