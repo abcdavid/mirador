@@ -452,6 +452,8 @@ export default {
     // filteredMotivations: if empty, all annotation motivations will be shown.
     // Otherwise, only annotations with motivations listed in the array will be shown.
     filteredMotivations: [],
+    enableAnnotationCopy: true,
+    annotationCopyConfirmDuration: 2000,
   },
   createGenerateClassNameOptions: {
     // Options passed directly to createGenerateClassName in Material-UI https://material-ui.com/styles/api/#creategenerateclassname-options-class-name-generator

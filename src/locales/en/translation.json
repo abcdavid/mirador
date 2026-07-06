@@ -32,6 +32,8 @@
     "collection": "Collection",
     "continue": "Continue",
     "copy": "Copy",
+    "copyAnnotationText": "Copy annotation text",
+    "copiedAnnotationText": "Annotation text copied",
     "currentItem": "Current item",
     "currentItem_1/1": "Current item",
     "currentItem_1/2": "Left",

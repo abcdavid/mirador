@@ -1,5 +1,6 @@
-import { useCallback } from 'react';
+import { useCallback, useState } from 'react';
 import PropTypes from 'prop-types';
+import Box from '@mui/material/Box';
 import Chip from '@mui/material/Chip';
 import MenuList from '@mui/material/MenuList';
 import MenuItem from '@mui/material/MenuItem';
@@ -8,6 +9,10 @@ import Typography from '@mui/material/Typography';
 import { useTranslation } from 'react-i18next';
 import SanitizedHtml from '../containers/SanitizedHtml';
 import { ScrollTo } from './ScrollTo';
+import { MiradorMenuButton } from './MiradorMenuButton';
+import ContentCopyIcon from '@mui/icons-material/ContentCopy';
+import CheckIcon from '@mui/icons-material/Check';
+import copy from 'copy-to-clipboard';
 
 /**
  * CanvasAnnotations ~
@@ -17,6 +22,8 @@ export function CanvasAnnotations({
   index,
   label,
   selectedAnnotationId = undefined,
+  enableAnnotationCopy = false,
+  annotationCopyConfirmDuration = 2000,
   totalSize,
   listContainerComponent = 'li',
   htmlSanitizationRuleSet = 'iiif',
@@ -28,6 +35,7 @@ export function CanvasAnnotations({
   hoverAnnotation,
 }) {
   const { t } = useTranslation();
+  const [copiedAnnotationId, setCopiedAnnotationId] = useState(null);
   const handleClick = useCallback(
     (_event, annotation) => {
       if (selectedAnnotationId === annotation.id) {
@@ -49,6 +57,16 @@ export function CanvasAnnotations({
   const handleAnnotationBlur = useCallback(() => {
     hoverAnnotation(windowId, []);
   }, [hoverAnnotation, windowId]);
+
+  const handleCopyClick = useCallback(
+    (annotation) => (e) => {
+      e.stopPropagation();
+      copy(annotation.content);
+      setCopiedAnnotationId(annotation.id);
+      setTimeout(() => setCopiedAnnotationId(null), annotationCopyConfirmDuration);
+    },
+    [annotationCopyConfirmDuration],
+  );
 
   if (annotations.length === 0) return null;
 
@@ -84,13 +102,25 @@ export function CanvasAnnotations({
               onMouseEnter={() => handleAnnotationHover(annotation)}
               onMouseLeave={handleAnnotationBlur}
             >
-              <ListItemText
-                primaryTypographyProps={{ variant: 'body2' }}
-                primary={<SanitizedHtml ruleSet={htmlSanitizationRuleSet} htmlString={annotation.content} />}
-                secondary={annotation.tags.map((tag) => (
-                  <Chip component="span" size="small" variant="outlined" label={tag} id={tag} key={tag.toString()} />
-                ))}
-              />
+              <Box sx={{ display: 'block' }}>
+                {enableAnnotationCopy && selectedAnnotationId === annotation.id && (
+                  <MiradorMenuButton
+                    aria-label={copiedAnnotationId === annotation.id ? t('copiedAnnotationText') : t('copyAnnotationText')}
+                    sx={{ float: 'right', padding: '0', marginLeft: '0', marginBottom: '0' }}
+                    size="small"
+                    onClick={handleCopyClick(annotation)}
+                  >
+                    {copiedAnnotationId === annotation.id ? <CheckIcon fontSize="small" /> : <ContentCopyIcon fontSize="small" />}
+                  </MiradorMenuButton>
+                )}
+                <ListItemText
+                  primaryTypographyProps={{ variant: 'body2' }}
+                  primary={<SanitizedHtml ruleSet={htmlSanitizationRuleSet} htmlString={annotation.content} />}
+                  secondary={annotation.tags.map((tag) => (
+                    <Chip component="span" size="small" variant="outlined" label={tag} id={tag} key={tag.toString()} />
+                  ))}
+                />
+              </Box>
             </MenuItem>
           </ScrollTo>
         ))}
@@ -116,6 +146,8 @@ CanvasAnnotations.propTypes = {
   listContainerComponent: PropTypes.elementType,
   selectAnnotation: PropTypes.func.isRequired,
   selectedAnnotationId: PropTypes.string,
+  enableAnnotationCopy: PropTypes.bool,
+  annotationCopyConfirmDuration: PropTypes.number,
   totalSize: PropTypes.number.isRequired,
   windowId: PropTypes.string.isRequired,
 };
